@@ -1,0 +1,3 @@
+include demosaicnet/data/bayer.pth
+include demosaicnet/data/xtrans.pth
+include demosaicnet/data/test_input.png

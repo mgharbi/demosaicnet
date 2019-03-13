@@ -1,13 +1,14 @@
 """Models for [Gharbi2016] Deep Joint demosaicking and denoising."""
 import os
 from collections import OrderedDict
+from pkg_resources import resource_filename
 
 import numpy as np
 import torch as th
 import torch.nn as nn
 
-
-WEIGHTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+_BAYER_WEIGHTS = resource_filename(__name__, 'data/bayer.pth')
+_XTRANS_WEIGHTS = resource_filename(__name__, 'data/xtrans.pth')
 
 
 __all__ = ["BayerDemosaick", "XTransDemosaick"]
@@ -54,7 +55,7 @@ class BayerDemosaick(nn.Module):
     if pretrained:
       assert depth == 15, "pretrained bayer model has depth=15."
       assert width == 64, "pretrained bayer model has width=64."
-      state_dict = th.load(os.path.join(WEIGHTS_DIR, "bayer.pth"))
+      state_dict = th.load(_BAYER_WEIGHTS)
       self.load_state_dict(state_dict)
 
   def forward(self, mosaic):
@@ -106,7 +107,7 @@ class XTransDemosaick(nn.Module):
     if pretrained:
       assert depth == 11, "pretrained xtrans model has depth=11."
       assert width == 64, "pretrained xtrans model has width=64."
-      state_dict = th.load(os.path.join(WEIGHTS_DIR, "xtrans.pth"))
+      state_dict = th.load(_XTRANS_WEIGHTS)
       self.load_state_dict(state_dict)
 
 
