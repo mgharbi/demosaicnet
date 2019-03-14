@@ -7,11 +7,12 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-_BAYER_WEIGHTS = resource_filename(__name__, 'data/bayer.pth')
-_XTRANS_WEIGHTS = resource_filename(__name__, 'data/xtrans.pth')
-
 
 __all__ = ["BayerDemosaick", "XTransDemosaick"]
+
+
+_BAYER_WEIGHTS = resource_filename(__name__, 'data/bayer.pth')
+_XTRANS_WEIGHTS = resource_filename(__name__, 'data/xtrans.pth')
 
 
 class BayerDemosaick(nn.Module):
@@ -59,6 +60,13 @@ class BayerDemosaick(nn.Module):
       self.load_state_dict(state_dict)
 
   def forward(self, mosaic):
+    """Demosaicks a Bayer image.
+
+    :param mosaic:  input Bayer mosaic
+    :type mosaic: :class:`th.Tensor`
+    :rtype: :class:`th.Tensor`
+    """
+
     # 1/4 resolution features
     features = self.main_processor(mosaic)
     filters, masks = features[:, :self.width], features[:, self.width:]
@@ -117,6 +125,7 @@ class XTransDemosaick(nn.Module):
     packed = th.cat([cropped, features], 1)  # skip connection
     output = self.fullres_processor(packed)
     return output
+
 
 def _crop_like(src, tgt):
     """Crop a source image to match the spatial dimensions of a target.
