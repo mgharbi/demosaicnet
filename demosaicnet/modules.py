@@ -62,9 +62,11 @@ class BayerDemosaick(nn.Module):
   def forward(self, mosaic):
     """Demosaicks a Bayer image.
 
-    :param mosaic:  input Bayer mosaic
-    :type mosaic: :class:`th.Tensor`
-    :rtype: :class:`th.Tensor`
+    Args:
+      mosaic (th.Tensor):  input Bayer mosaic
+
+    Returns:
+      th.Tensor: the demosaicked image
     """
 
     # 1/4 resolution features
@@ -120,6 +122,15 @@ class XTransDemosaick(nn.Module):
 
 
   def forward(self, mosaic):
+    """Demosaicks an XTrans image.
+
+    Args:
+      mosaic (th.Tensor):  input XTrans mosaic
+
+    Returns:
+      th.Tensor: the demosaicked image
+    """
+
     features = self.main_processor(mosaic)
     cropped = _crop_like(mosaic, features)  # Match mosaic and residual
     packed = th.cat([cropped, features], 1)  # skip connection

@@ -8,14 +8,17 @@ __all__ = ["bayer", "xtrans"]
 def bayer(im, return_mask=False):
   """Bayer mosaic.
 
+  The patterned assumed is::
+
     G r
     b G
 
   Args:
-    im(np.array, th.Tensor): image to mosaic. Dimensions are [c, h, w]
-    return_mask(bool): if true return the binary mosaic mask, instead of the mosaic image.
+    im (np.array): image to mosaic. Dimensions are [c, h, w]
+    return_mask (bool): if true return the binary mosaic mask, instead of the mosaic image.
+
   Returns:
-    mosaicked image (if return_mask==False), or binary mask if (return_mask==True)
+    np.array: mosaicked image (if return_mask==False), or binary mask if (return_mask==True)
   """
 
   mask = np.ones_like(im)
@@ -41,6 +44,8 @@ def bayer(im, return_mask=False):
 def xtrans(im, return_mask=False):
   """XTrans Mosaick.
 
+   The patterned assumed is::
+
      G b G G r G
      r G r b G b
      G b G G r G
@@ -51,9 +56,11 @@ def xtrans(im, return_mask=False):
   Args:
     im(np.array, th.Tensor): image to mosaic. Dimensions are [c, h, w]
     mask(bool): if true return the binary mosaic mask, instead of the mosaic image.
+
   Returns:
-    mosaicked image (if mask==False), or binary mask if (mask==True)
+    np.array: mosaicked image (if mask==False), or binary mask if (mask==True)
   """
+
   mask = np.zeros((3, 6, 6), dtype=np.float32)
   g_pos = [(0,0),        (0,2), (0,3),        (0,5),
                   (1,1),               (1,4),
@@ -77,12 +84,6 @@ def xtrans(im, return_mask=False):
   for idx, coord in enumerate([r_pos, g_pos, b_pos]):
     for y, x in coord:
       mask[idx, y, x] = 1
-    #
-  # for y, x in g_pos:
-  #   mask[1, y, x] = 1
-  #
-  # for y, x in b_pos:
-  #   mask[2, y, x] = 1
 
   _, h, w = im.shape
   mask = np.tile(mask, [1, np.ceil(h / 6).astype(np.int32), np.ceil(w / 6).astype(np.int32)])
