@@ -23,11 +23,16 @@ class BayerDemosaick(nn.Module):
   other. This is not key to performance and can be ignored when training new
   models from scratch.
   """
-  def __init__(self, depth=15, width=64, pretrained=True):
+  def __init__(self, depth=15, width=64, pretrained=True, pad=False):
     super(BayerDemosaick, self).__init__()
 
     self.depth = depth
     self.width = width
+
+    if pad:
+      pad = 1
+    else:
+      pad = 0
 
     layers = OrderedDict([
         ("pack_mosaic", nn.Conv2d(3, 4, 2, stride=2)),  # Downsample 2x2 to re-establish translation invariance
@@ -39,7 +44,7 @@ class BayerDemosaick(nn.Module):
         n_in = 4
       if i == depth-1:
         n_out = 2*width
-      layers["conv{}".format(i+1)] = nn.Conv2d(n_in, n_out, 3)
+      layers["conv{}".format(i+1)] = nn.Conv2d(n_in, n_out, 3, padding=pad)
       layers["relu{}".format(i+1)] = nn.ReLU(inplace=True)
 
     self.main_processor = nn.Sequential(layers)
@@ -47,7 +52,7 @@ class BayerDemosaick(nn.Module):
     self.upsampler = nn.ConvTranspose2d(12, 3, 2, stride=2, groups=3)
 
     self.fullres_processor = nn.Sequential(OrderedDict([
-      ("post_conv", nn.Conv2d(6, width, 3)),
+      ("post_conv", nn.Conv2d(6, width, 3, padding=pad)),
       ("post_relu", nn.ReLU(inplace=True)),
       ("output", nn.Conv2d(width, 3, 1)),
       ]))
