@@ -1,6 +1,9 @@
-# demosaicnet
+# Deep Joint Demosaicking and Denoising
+SiGGRAPH Asia 2016
 
-A minimal torch implementation of "Deep Joint Demosaicking and Denoising" [Gharbi2016]
+Michaël Gharbi gharbi@mit.edu Gaurav Chaurasia Sylvain Paris Frédo Durand
+
+A minimal pytorch implementation of "Deep Joint Demosaicking and Denoising" [Gharbi2016]
 
 # Installation
 
