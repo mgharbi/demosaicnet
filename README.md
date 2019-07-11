@@ -18,3 +18,9 @@ Using pip:
 ```shell
 pip install demosaicnet
 ```
+
+Then run the demo script with:
+
+```shell
+demosaicnet_demo
+```
