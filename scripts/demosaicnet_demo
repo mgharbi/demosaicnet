@@ -19,7 +19,7 @@ def main(args):
   xtrans = demosaicnet.XTransDemosaick()
 
   # Load some ground-truth image
-  gt = skio.imread(_TEST_INPUT).astype(np.float32) / 255.0
+  gt = skio.imread(args.input).astype(np.float32) / 255.0
 
   # Network expects channel first
   gt = np.transpose(gt, [2, 0, 1])
@@ -48,6 +48,7 @@ def main(args):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("output", help="output directory")
+  parser.add_argument("--input", default=_TEST_INPUT, help="test input, uses the default test input provided if no argument.")
   args = parser.parse_args()
   main(args)
   
