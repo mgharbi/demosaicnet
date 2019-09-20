@@ -11,6 +11,7 @@ Welcome to demosaicnet's documentation!
    :caption: Contents:
 
    models
+   dataset
    helpers
 
 .. automodule:: demosaicnet

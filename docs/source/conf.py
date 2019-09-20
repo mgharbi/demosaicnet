@@ -14,7 +14,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../demosaicnet'))
+dirname = os.path.dirname
+rootdir = dirname(dirname(dirname(os.path.abspath(__file__))))
+sys.path.insert(0, rootdir)
 
 
 # -- Project information -----------------------------------------------------
@@ -23,15 +25,21 @@ project = 'demosaicnet'
 copyright = '2019, Michael Gharbi'
 author = 'Michael Gharbi'
 
-# The short X.Y version
-version = ''
+import re
+with open(os.path.join(rootdir, "demosaicnet", "version.py")) as fid:
+    try:
+        __version__, = re.findall( '__version__ = "(.*)"', fid.read() )
+    except:
+        raise ValueError("could not find version number")
+
 # The full version, including alpha/beta/rc tags
-release = 'v1.0'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
+autodoc_mock_imports = ["torch", "numpy", "skimage", "torchvision"]
 #
 # needs_sphinx = '1.0'
 
