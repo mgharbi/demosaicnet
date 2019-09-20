@@ -2,3 +2,4 @@ output/
 dist/
 demosaicnet.egg-info
 build/
+data

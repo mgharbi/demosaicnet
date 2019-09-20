@@ -146,8 +146,6 @@ class XTransDemosaick(nn.Module):
 def _crop_like(src, tgt):
     """Crop a source image to match the spatial dimensions of a target.
 
-    Assumes sizes are even.
-
     Args:
         src (th.Tensor or np.ndarray): image to be cropped
         tgt (th.Tensor or np.ndarray): reference image
@@ -157,10 +155,13 @@ def _crop_like(src, tgt):
 
     # Assumes the spatial dimensions are the last two
     crop = (src_sz[-2:]-tgt_sz[-2:])
-    assert (np.mod(crop, 2) == 0).all(), "crop like sizes should be even"
+    crop_t = crop[0] // 2
+    crop_b = crop[0] - crop_t
+    crop_l = crop[1] // 2
+    crop_r = crop[1] - crop_l
     crop //= 2
-    if (crop > 0).any():
-        return src[..., crop[0]:src_sz[-2]-crop[0], crop[1]:src_sz[-1]-crop[1]]
+    if (np.array([crop_t, crop_b, crop_r, crop_l])> 0).any():
+        return src[..., crop_t:src_sz[-2]-crop_b, crop_l:src_sz[-1]-crop_r]
     else:
         return src
 
