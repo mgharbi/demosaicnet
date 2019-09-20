@@ -39,7 +39,7 @@ release = __version__
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-autodoc_mock_imports = ["torch", "numpy", "skimage", "torchvision"]
+autodoc_mock_imports = ["torch", "numpy", "skimage", "torchvision", "wget"]
 #
 # needs_sphinx = '1.0'
 
