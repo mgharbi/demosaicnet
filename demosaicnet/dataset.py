@@ -2,6 +2,7 @@
 import os
 import platform
 import subprocess
+import shutil
 import hashlib
 
 
@@ -441,6 +442,7 @@ CHECKSUMS = {
 
 
 def _download(dst):
+    dst = os.path.abspath(dst)
     files = CHECKSUMS.keys()
     fullzip = os.path.join(dst, "datasets.zip")
     joinedzip = os.path.join(dst, "joined.zip")
@@ -488,22 +490,31 @@ def _download(dst):
         subprocess.check_call(cmd, shell=True)
 
         # Cleanup the parts
-        # for f in files:
-        #     fname = os.path.join(dst, f)
-        #     try:
-        #         os.remove(fname)
-        #     except OSError as e:
-        #         LOG.warning("Could not delete file %s", f)
+        for f in files:
+            fname = os.path.join(dst, f)
+            try:
+                os.remove(fname)
+            except OSError as e:
+                LOG.warning("Could not delete file %s", f)
 
+    # Extract
+    wd = os.path.abspath(os.curdir)
+    os.chdir(dst)
     LOG.info("Extracting files from %s", joinedzip)
     cmd = " ".join(["unzip", joinedzip])
     subprocess.check_call(cmd, shell=True)
-    # try:
-    #     os.remove(joinedzip)
-    # except OSError as e:
-    #     LOG.warning("Could not delete file %s", f)
 
-    # TODO: create the filelist for each subfolder
+    try:
+        os.remove(joinedzip)
+    except OSError as e:
+        LOG.warning("Could not delete file %s", f)
+
+    LOG.info("Moving subfolders")
+    for k in ["train", "test", "val"]:
+        shutil.move(os.path.join(dst, "images", k), os.path.join(dst, k))
+    images = os.path.join(dst, "images")
+    LOG.info("removing '%s' folder", images)
+    shutil.rmtree(images)
 
 
 def md5sum(filename, blocksize=65536):
