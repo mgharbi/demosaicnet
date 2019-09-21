@@ -78,7 +78,7 @@ class Dataset(TorchDataset):
         self.files = []
         with open(listfile, "r") as fid:
             for fname in fid.readlines():
-                self.files.append(os.path.join(self.root, fname.strip()))
+                self.files.append(os.path.join(self.root, subset, fname.strip()))
 
     def __len__(self):
         return len(self.files)
