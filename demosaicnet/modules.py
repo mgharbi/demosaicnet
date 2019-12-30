@@ -95,11 +95,16 @@ class XTransDemosaick(nn.Module):
   There is no downsampling here.
 
   """
-  def __init__(self, depth=11, width=64, pretrained=True):
+  def __init__(self, depth=11, width=64, pretrained=True, pad=False):
     super(XTransDemosaick, self).__init__()
 
     self.depth = depth
     self.width = width
+
+    if pad:
+      pad = 1
+    else:
+      pad = 0
 
     layers = OrderedDict([])
     for i in range(depth):
@@ -107,13 +112,13 @@ class XTransDemosaick(nn.Module):
       n_out = width
       if i == 0:
         n_in = 3
-      layers["conv{}".format(i+1)] = nn.Conv2d(n_in, n_out, 3)
+      layers["conv{}".format(i+1)] = nn.Conv2d(n_in, n_out, 3, padding=pad)
       layers["relu{}".format(i+1)] = nn.ReLU(inplace=True)
 
     self.main_processor = nn.Sequential(layers)
 
     self.fullres_processor = nn.Sequential(OrderedDict([
-      ("post_conv", nn.Conv2d(3+width, width, 3)),
+      ("post_conv", nn.Conv2d(3+width, width, 3, padding=pad)),
       ("post_relu", nn.ReLU(inplace=True)),
       ("output", nn.Conv2d(width, 3, 1)),
       ]))
