@@ -99,7 +99,7 @@ def main(args):
     """Entrypoint to the training."""
 
     # Load model parameters from checkpoint, if any
-    meta = ttools.Checkpointer.load_meta(args.checkpoint_dir, "generator_")
+    meta = ttools.Checkpointer.load_meta(args.checkpoint_dir)
     if meta is None:
         LOG.info("No metadata or checkpoint, "
                  "parsing model parameters from command line.")
