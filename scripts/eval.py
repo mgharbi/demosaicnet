@@ -15,6 +15,13 @@ import demosaicnet
 
 LOG = ttools.get_logger(__name__)
 
+class PSNR(th.nn.Module):
+    def __init__(self):
+        super(PSNR, self).__init__()
+        self.mse = th.nn.MSELoss()
+    def forward(self, out, ref):
+        mse = self.mse(out, ref)
+        return -10*th.log10(mse)
 
 def main(args):
     """Entrypoint to the training."""
@@ -50,7 +57,7 @@ def main(args):
         p.requires_grad = False
 
     mse_fn = th.nn.MSELoss()
-    psnr_fn = ttools.modules.losses.PSNR()
+    psnr_fn = PSNR()
 
     device = "cpu"
     if th.cuda.is_available():
@@ -67,8 +74,10 @@ def main(args):
 
         target = crop_like(target, output)
 
-        psnr_ = psnr_fn(th.clamp(output, 0, 1), target).item()
-        mse_ = mse_fn(th.clamp(output, 0, 1), target).item()
+        output = th.clamp(output, 0, 1)
+
+        psnr_ = psnr_fn(output, target).item()
+        mse_ = mse_fn(output, target).item()
 
         psnr += psnr_
         mse += mse_
