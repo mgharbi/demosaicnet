@@ -1,5 +1,6 @@
 """Utilities to make a mosaic mask and apply it to an image."""
 import numpy as np
+import torch as th
 
 
 __all__ = ["bayer", "xtrans"]
@@ -21,22 +22,25 @@ def bayer(im, return_mask=False):
     np.array: mosaicked image (if return_mask==False), or binary mask if (return_mask==True)
   """
 
-  mask = np.ones_like(im)
+  if type(im) == np.ndarray:
+    mask = np.ones_like(im)
+  else:
+    mask = th.ones_like(im)
 
   if return_mask:
     return mask
 
   # red
-  mask[0, ::2, 0::2] = 0
-  mask[0, 1::2, :] = 0
+  mask[..., 0, ::2, 0::2] = 0
+  mask[..., 0, 1::2, :] = 0
 
   # green
-  mask[1, ::2, 1::2] = 0
-  mask[1, 1::2, ::2] = 0
+  mask[..., 1, ::2, 1::2] = 0
+  mask[..., 1, 1::2, ::2] = 0
 
   # blue
-  mask[2, 0::2, :] = 0
-  mask[2, 1::2, 1::2] = 0
+  mask[..., 2, 0::2, :] = 0
+  mask[..., 2, 1::2, 1::2] = 0
 
   return im*mask
 
@@ -86,7 +90,8 @@ def xtrans(im, return_mask=False):
       mask[idx, y, x] = 1
 
   _, h, w = im.shape
-  mask = np.tile(mask, [1, np.ceil(h / 6).astype(np.int32), np.ceil(w / 6).astype(np.int32)])
+  mask = np.tile(mask, [1, np.ceil(h / 6).astype(np.int32),
+                        np.ceil(w / 6).astype(np.int32)])
   mask = mask[:, :h, :w]
   if return_mask:
     return mask

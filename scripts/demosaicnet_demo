@@ -7,7 +7,7 @@ from pkg_resources import resource_filename
 import argparse
 import numpy as np
 import torch as th
-import skimage.io as skio
+import imageio
 
 import demosaicnet
 
@@ -19,7 +19,7 @@ def main(args):
   xtrans = demosaicnet.XTransDemosaick()
 
   # Load some ground-truth image
-  gt = skio.imread(args.input).astype(np.float32) / 255.0
+  gt = imageio.imread(args.input).astype(np.float32) / 255.0
 
   # Network expects channel first
   gt = np.transpose(gt, [2, 0, 1])

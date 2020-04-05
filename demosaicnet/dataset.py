@@ -7,7 +7,7 @@ import hashlib
 
 
 import numpy as np
-from skimage.io import imread
+from imageio import imread
 from torch.utils.data import Dataset as TorchDataset
 import wget
 
