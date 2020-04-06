@@ -65,7 +65,6 @@ def xtrans(im, return_mask=False):
     np.array: mosaicked image (if mask==False), or binary mask if (mask==True)
   """
 
-  mask = np.zeros((3, 6, 6), dtype=np.float32)
   g_pos = [(0,0),        (0,2), (0,3),        (0,5),
                   (1,1),               (1,4),
            (2,0),        (2,2), (2,3),        (2,5),
@@ -85,14 +84,32 @@ def xtrans(im, return_mask=False):
            (4,0), (4,2),
            (5,4)]
 
+  numpy = False
+  if type(im) == np.ndarray:
+    numpy = True
+    mask = np.zeros((3, 6, 6), dtype=np.float32)
+  else:
+    mask = th.zeros(3, 6, 6)
+
   for idx, coord in enumerate([r_pos, g_pos, b_pos]):
     for y, x in coord:
-      mask[idx, y, x] = 1
+      mask[..., idx, y, x] = 1
 
-  _, h, w = im.shape
-  mask = np.tile(mask, [1, np.ceil(h / 6).astype(np.int32),
-                        np.ceil(w / 6).astype(np.int32)])
-  mask = mask[:, :h, :w]
+  h, w = im.shape[-2:]
+
+  new_sz = [np.ceil(h / 6).astype(np.int32), np.ceil(w / 6).astype(np.int32)]
+
+  sz = np.array(mask.shape)
+  sz[:-2] = 1
+  sz[-2:] = new_sz
+
+  if numpy:
+    mask = np.tile(mask, sz)
+  else:
+    mask = mask.repeat(*sz)
+
+  mask = mask[..., :, :h, :w]
+
   if return_mask:
     return mask
 
