@@ -89,7 +89,7 @@ def xtrans(im, return_mask=False):
     numpy = True
     mask = np.zeros((3, 6, 6), dtype=np.float32)
   else:
-    mask = th.zeros(3, 6, 6)
+    mask = th.zeros(3, 6, 6).to(im.device)
 
   for idx, coord in enumerate([r_pos, g_pos, b_pos]):
     for y, x in coord:
