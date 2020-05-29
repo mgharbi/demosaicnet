@@ -27,9 +27,6 @@ def bayer(im, return_mask=False):
   else:
     mask = th.ones_like(im)
 
-  if return_mask:
-    return mask
-
   # red
   mask[..., 0, ::2, 0::2] = 0
   mask[..., 0, 1::2, :] = 0
@@ -41,6 +38,9 @@ def bayer(im, return_mask=False):
   # blue
   mask[..., 2, 0::2, :] = 0
   mask[..., 2, 1::2, 1::2] = 0
+
+  if return_mask:
+    return mask
 
   return im*mask
 
@@ -90,6 +90,8 @@ def xtrans(im, return_mask=False):
     mask = np.zeros((3, 6, 6), dtype=np.float32)
   else:
     mask = th.zeros(3, 6, 6).to(im.device)
+    if len(im.shape) == 4:
+      mask = mask.unsqueeze(0).repeat(im.shape[0], 1, 1, 1)
 
   for idx, coord in enumerate([r_pos, g_pos, b_pos]):
     for y, x in coord:
@@ -108,7 +110,7 @@ def xtrans(im, return_mask=False):
   else:
     mask = mask.repeat(*sz)
 
-  mask = mask[..., :, :h, :w]
+  mask = mask[..., :h, :w]
 
   if return_mask:
     return mask
