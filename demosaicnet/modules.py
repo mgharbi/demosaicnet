@@ -76,7 +76,7 @@ class BayerDemosaick(nn.Module):
 
     # 1/4 resolution features
     features = self.main_processor(mosaic)
-    filters, masks = features[:, :self.width], features[:, self.width:]
+    filters, masks = features[:, 0:self.width], features[:, self.width:2*self.width]
     filtered = filters * masks
     residual = self.residual_predictor(filtered)
 
