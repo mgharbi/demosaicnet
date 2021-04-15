@@ -3,3 +3,4 @@ dist/
 demosaicnet.egg-info
 build/
 data
+.DS_Store

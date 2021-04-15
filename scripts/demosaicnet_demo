@@ -20,6 +20,13 @@ def main(args):
 
   # Load some ground-truth image
   gt = imageio.imread(args.input).astype(np.float32) / 255.0
+  gt = np.array(gt)
+
+  h, w, _ = gt.shape
+
+  # Make the image size a multiple of 6 (for xtrans pattern)
+  gt = gt[:6*(h//6), :6*(w//6)]
+
 
   # Network expects channel first
   gt = np.transpose(gt, [2, 0, 1])
@@ -36,13 +43,13 @@ def main(args):
     xout = np.clip(xout, 0, 1)
   print("done")
 
-  os.makedirs(args.output)
+  os.makedirs(args.output, exist_ok=True)
   output = args.output
 
-  skio.imsave(os.path.join(output, "bayer_mosaick.png"), mosaicked.squeeze(0).permute([1, 2, 0]))
-  skio.imsave(os.path.join(output, "bayer_result.png"), np.transpose(out, [1, 2, 0]))
-  skio.imsave(os.path.join(output, "xtrans_mosaick.png"), xmosaicked.squeeze(0).permute([1, 2, 0]))
-  skio.imsave(os.path.join(output, "xtrans_result.png"), np.transpose(xout, [1, 2, 0]))
+  imageio.imsave(os.path.join(output, "bayer_mosaick.png"), mosaicked.squeeze(0).permute([1, 2, 0]))
+  imageio.imsave(os.path.join(output, "bayer_result.png"), np.transpose(out, [1, 2, 0]))
+  imageio.imsave(os.path.join(output, "xtrans_mosaick.png"), xmosaicked.squeeze(0).permute([1, 2, 0]))
+  imageio.imsave(os.path.join(output, "xtrans_result.png"), np.transpose(xout, [1, 2, 0]))
 
   
 if __name__ == "__main__":
