@@ -24,3 +24,7 @@ Then run the demo script with:
 ```shell
 demosaicnet_demo
 ```
+# FAQ
+
+- **How is noise handled? Where is the pretrained model?** The noise-aware model is not implementation, see the earlier Caffe implementation for that <https://github.com/mgharbi/demosaicnet_caffe>
+- **How do I train this?** The script `scripts/train.py` is a good start to setup your training job, but I haven't tested it yet, I recommend rolling your own.
