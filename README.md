@@ -22,8 +22,23 @@ pip install demosaicnet
 Then run the demo script with:
 
 ```shell
-python scripts/demosaicnet_demo.py
+python scripts/demosaicnet_demo.py output
 ```
+
+To train a dummy model on the demo dataset provided, run:
+
+```shell
+python scripts/train.py --data demosaicnet/data/dummy_dataset --checkpoint_dir ckpt
+```
+
+To build and update the whee:
+
+```shell
+pip install wheel twine
+make distribution
+make upload_distribution
+```
+
 # FAQ
 
 - **How is noise handled? Where is the pretrained model?** The noise-aware model is not implementation, see the earlier Caffe implementation for that <https://github.com/mgharbi/demosaicnet_caffe>

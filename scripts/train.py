@@ -38,6 +38,11 @@ class DemosaicnetInterface(demosaicnet.utils.ModelInterface):
         self.loss = th.nn.MSELoss()
         self.psnr = PSNR()
 
+    def training_step(self, batch):
+        fwd_data = self.forward(batch)
+        bwd_data = self.backward(batch, fwd_data)
+        return bwd_data
+
     def forward(self, batch):
         mosaic = batch[0]
         mosaic = mosaic.to(self.device)
