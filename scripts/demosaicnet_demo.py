@@ -46,10 +46,10 @@ def main(args):
   os.makedirs(args.output, exist_ok=True)
   output = args.output
 
-  imageio.imsave(os.path.join(output, "bayer_mosaick.png"), mosaicked.squeeze(0).permute([1, 2, 0]))
-  imageio.imsave(os.path.join(output, "bayer_result.png"), np.transpose(out, [1, 2, 0]))
-  imageio.imsave(os.path.join(output, "xtrans_mosaick.png"), xmosaicked.squeeze(0).permute([1, 2, 0]))
-  imageio.imsave(os.path.join(output, "xtrans_result.png"), np.transpose(xout, [1, 2, 0]))
+  imageio.imsave(os.path.join(output, "bayer_mosaick.tif"), mosaicked.squeeze(0).permute([1, 2, 0]))
+  imageio.imsave(os.path.join(output, "bayer_result.tif"), np.transpose(out, [1, 2, 0]))
+  imageio.imsave(os.path.join(output, "xtrans_mosaick.tif"), xmosaicked.squeeze(0).permute([1, 2, 0]))
+  imageio.imsave(os.path.join(output, "xtrans_result.tif"), np.transpose(xout, [1, 2, 0]))
 
   
 if __name__ == "__main__":

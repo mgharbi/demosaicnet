@@ -1,19 +1,15 @@
 #!/bin/env python
 """Evaluate a demosaicking model."""
 import argparse
-import os
-import time
+import logging
 
 import torch as th
 from torch.utils.data import DataLoader
-import numpy as np
-import ttools
-from ttools.modules.image_operators import crop_like
 
 import demosaicnet
 
 
-LOG = ttools.get_logger(__name__)
+log = logging.getLogger(__name__)
 
 class PSNR(th.nn.Module):
     def __init__(self):
@@ -27,9 +23,9 @@ def main(args):
     """Entrypoint to the training."""
 
     # Load model parameters from checkpoint, if any
-    meta = ttools.Checkpointer.load_meta(args.checkpoint_dir)
+    meta = demosaicnet.utils.Checkpointer.load_meta(args.checkpoint_dir)
     if meta is None:
-        LOG.warning("No checkpoint found at %s, aborting.", args.checkpoint_dir)
+        log.warning("No checkpoint found at %s, aborting.", args.checkpoint_dir)
         return
 
     data = demosaicnet.Dataset(args.data, download=False,
@@ -49,7 +45,7 @@ def main(args):
                                             pretrained=True,
                                             pad=False)
 
-    checkpointer = ttools.Checkpointer(args.checkpoint_dir, model, meta=meta)
+    checkpointer = demosaicnet.utils.Checkpointer(args.checkpoint_dir, model, meta=meta)
     checkpointer.load_latest()  # Resume from checkpoint, if any.
 
     # No need for gradients
@@ -62,7 +58,7 @@ def main(args):
     device = "cpu"
     if th.cuda.is_available():
         device = "cuda"
-        LOG.info("Using CUDA")
+        log.info("Using CUDA")
 
     count = 0
     mse = 0.0
@@ -72,7 +68,7 @@ def main(args):
         target = batch[1].to(device)
         output = model(mosaic)
 
-        target = crop_like(target, output)
+        target = demosaicnet.utils.crop_like(target, output)
 
         output = th.clamp(output, 0, 1)
 
@@ -83,13 +79,13 @@ def main(args):
         mse += mse_
         count += 1
 
-        LOG.info("Image %04d, PSNR = %.1f dB, MSE = %.5f", idx, psnr_, mse_)
+        log.info("Image %04d, PSNR = %.1f dB, MSE = %.5f", idx, psnr_, mse_)
 
     mse /= count
     psnr /= count
 
-    LOG.info("-----------------------------------")
-    LOG.info("Average, PSNR = %.1f dB, MSE = %.5f", psnr, mse)
+    log.info("-----------------------------------")
+    log.info("Average, PSNR = %.1f dB, MSE = %.5f", psnr, mse)
 
 
 
@@ -98,5 +94,4 @@ if __name__ == "__main__":
     parser.add_argument("data", help="root directory for the demosaicnet dataset.")
     parser.add_argument("checkpoint_dir", help="directory with the model checkpoints.")
     args = parser.parse_args()
-    ttools.set_logger(False)
     main(args)

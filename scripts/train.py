@@ -1,21 +1,26 @@
 #!/bin/env python
 """Train a demosaicking model."""
-import os
-import time
+import logging
 
 import torch as th
 from torch.utils.data import DataLoader
-import numpy as np
-import ttools
-from ttools.modules.image_operators import crop_like
 
 import demosaicnet
 
 
-LOG = ttools.get_logger(__name__)
+log = logging.getLogger(__name__)
 
 
-class DemosaicnetInterface(ttools.ModelInterface):
+class PSNR(th.nn.Module):
+    def __init__(self):
+        super(PSNR, self).__init__()
+        self.mse = th.nn.MSELoss()
+    def forward(self, out, ref):
+        mse = self.mse(out, ref)
+        return -10*th.log10(mse+1e-12)
+
+
+class DemosaicnetInterface(demosaicnet.utils.ModelInterface):
     """Training and validation interface.
 
     Args:
@@ -31,7 +36,7 @@ class DemosaicnetInterface(ttools.ModelInterface):
         self.model.to(self.device)
         self.opt = th.optim.Adam(self.model.parameters(), lr=lr)
         self.loss = th.nn.MSELoss()
-        self.psnr = ttools.modules.losses.PSNR()
+        self.psnr = PSNR()
 
     def forward(self, batch):
         mosaic = batch[0]
@@ -43,7 +48,7 @@ class DemosaicnetInterface(ttools.ModelInterface):
         target = batch[1].to(self.device)
 
         # remove boundaries to match output size
-        target = crop_like(target, fwd_output)
+        target = demosaicnet.utils.crop_like(target, fwd_output)
 
         loss = self.loss(fwd_output, target)
 
@@ -63,7 +68,7 @@ class DemosaicnetInterface(ttools.ModelInterface):
         target = batch[1].to(self.device)
 
         # remove boundaries to match output size
-        target = crop_like(target, fwd_output)
+        target = demosaicnet.utils.crop_like(target, fwd_output)
 
         with th.no_grad():
             psnr = self.psnr(th.clamp(fwd_output, 0, 1), target)
@@ -80,28 +85,13 @@ class DemosaicnetInterface(ttools.ModelInterface):
         }
 
 
-class ImageCallback(ttools.callbacks.ImageDisplayCallback):
-    def visualized_image(self, batch, fwd_output):
-        fwd_output = fwd_output.cpu().detach()
-        mosaic, target = batch
-        mosaic = crop_like(mosaic.cpu().detach(), fwd_output)
-        target = crop_like(target.cpu().detach(), fwd_output)
-        diff = 4*(fwd_output-target).abs()
-        vizdata = [mosaic, target, fwd_output, diff]
-        viz = th.clamp(th.cat(vizdata, 2), 0, 1)
-        return viz
-
-    def caption(self, batch, fwd_result):
-        return "mosaic, ref, ours, diff"
-
-
 def main(args):
     """Entrypoint to the training."""
 
     # Load model parameters from checkpoint, if any
-    meta = ttools.Checkpointer.load_meta(args.checkpoint_dir)
+    meta = demosaicnet.utils.Checkpointer.load_meta(args.checkpoint_dir)
     if meta is None:
-        LOG.info("No metadata or checkpoint, "
+        log.info("No metadata or checkpoint, "
                  "parsing model parameters from command line.")
         meta = {
             "depth": args.depth,
@@ -135,32 +125,27 @@ def main(args):
                                             width=meta["width"],
                                             pretrained=True,
                                             pad=False)
-    checkpointer = ttools.Checkpointer(
+    checkpointer = demosaicnet.utils.Checkpointer(
         args.checkpoint_dir, model, meta=meta)
 
     interface = DemosaicnetInterface(model, lr=args.lr, cuda=args.cuda)
 
     checkpointer.load_latest()  # Resume from checkpoint, if any.
 
-    trainer = ttools.Trainer(interface)
+    trainer = demosaicnet.utils.Trainer(interface)
 
     keys = ["loss", "psnr"]
     val_keys = ["psnr"]
 
-    trainer.add_callback(ttools.callbacks.ProgressBarCallback(
+    trainer.add_callback(demosaicnet.utils.ProgressBarCallback(
         keys=keys, val_keys=val_keys))
-    trainer.add_callback(ttools.callbacks.VisdomLoggingCallback(
-        keys=keys, val_keys=val_keys, server=args.server,
-        env=args.env, port=args.port))
-    trainer.add_callback(ImageCallback(
-        server=args.server, env=args.env, win="images", port=args.port))
-    trainer.add_callback(ttools.callbacks.CheckpointingCallback(
+    trainer.add_callback(demosaicnet.utils.CheckpointingCallback(
         checkpointer, max_files=8, interval=3600, max_epochs=10))
 
     if args.cuda:
-        LOG.info("Training with CUDA enabled")
+        log.info("Training with CUDA enabled")
     else:
-        LOG.info("Training on CPU")
+        log.info("Training on CPU")
 
     trainer.train(
         dataloader, num_epochs=args.num_epochs,
@@ -168,7 +153,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = ttools.BasicArgumentParser()
+    parser = demosaicnet.utils.BasicArgumentParser()
     parser.add_argument("--depth", default=15,
                         help="number of net layers.")
     parser.add_argument("--width", default=64,
@@ -178,5 +163,4 @@ if __name__ == "__main__":
                                  demosaicnet.XTRANS_MODE],
                         help="number of features per layer.")
     args = parser.parse_args()
-    ttools.set_logger(args.debug)
     main(args)

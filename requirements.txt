@@ -1,0 +1,6 @@
+imageio==2.31.1
+numpy==1.25.0
+setuptools==49.2.1
+torch==2.0.1
+tqdm==4.65.0
+wget

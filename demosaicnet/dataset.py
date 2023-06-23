@@ -1,9 +1,9 @@
 """Dataset loader for demosaicnet."""
 import os
-import platform
 import subprocess
 import shutil
 import hashlib
+import logging
 
 
 import numpy as np
@@ -11,16 +11,13 @@ from imageio import imread
 from torch.utils.data import Dataset as TorchDataset
 import wget
 
-import ttools
-
 from .mosaic import bayer, xtrans
 
 __all__ = ["BAYER_MODE", "XTRANS_MODE", "Dataset",
            "TRAIN_SUBSET", "VAL_SUBSET", "TEST_SUBSET"]
 
 
-LOG = ttools.get_logger(__name__)
-ttools.set_logger(True)
+log = logging.getLogger(__name__)
 
 BAYER_MODE = "bayer"
 """Applies a Bayer mosaic pattern."""
@@ -65,16 +62,16 @@ class Dataset(TorchDataset):
         self.mode = mode
 
         listfile = os.path.join(self.root, subset, "filelist.txt")
-        LOG.debug("Reading image list from %s", listfile)
+        log.debug("Reading image list from %s", listfile)
 
         if not os.path.exists(listfile):
             if download:
                 _download(self.root)
             else:
-                LOG.error("Filelist %s not found", listfile)
+                log.error("Filelist %s not found", listfile)
                 raise ValueError("Filelist %s not found" % listfile)
         else:
-            LOG.debug("No need no download the data, filelist exists.")
+            log.debug("No need no download the data, filelist exists.")
 
         self.files = []
         with open(listfile, "r") as fid:
@@ -450,7 +447,7 @@ def _download(dst):
     URL_ROOT = "https://data.csail.mit.edu/graphics/demosaicnet"
 
     if not os.path.exists(joinedzip):
-        LOG.info("Dowloading %d files to %s (This will take a while, and ~80GB)", len(
+        log.info("Dowloading %d files to %s (This will take a while, and ~80GB)", len(
             files), dst)
 
         os.makedirs(dst, exist_ok=True)
@@ -462,30 +459,30 @@ def _download(dst):
             if os.path.exists(fname):
                 checksum = md5sum(fname)
                 if checksum == CHECKSUMS[f]:  # File is is and correct
-                    LOG.info('%s already downloaded, with correct checksum', f)
+                    log.info('%s already downloaded, with correct checksum', f)
                     do_download = False
                 else:
-                    LOG.warning('%s checksums do not match, got %s, should be %s',
+                    log.warning('%s checksums do not match, got %s, should be %s',
                                 f, checksum, CHECKSUMS[f])
                     try:
                         os.remove(fname)
                     except OSError as e:
-                        LOG.error("Could not delete broken part %s: %s", f, e)
+                        log.error("Could not delete broken part %s: %s", f, e)
                         raise ValueError
 
             if do_download:
-                LOG.info('Downloading %s', f)
+                log.info('Downloading %s', f)
                 wget.download(url, fname)
 
             checksum = md5sum(fname)
 
             if checksum == CHECKSUMS[f]:
-                LOG.info("%s MD5 correct", f)
+                log.info("%s MD5 correct", f)
             else:
-                LOG.error('%s checksums do not match, got %s, should be %s. Downloading failed',
+                log.error('%s checksums do not match, got %s, should be %s. Downloading failed',
                           f, checksum, CHECKSUMS[f])
 
-        LOG.info("Joining zip files")
+        log.info("Joining zip files")
         cmd = " ".join(["zip", "-FF", fullzip, "--out", joinedzip])
         subprocess.check_call(cmd, shell=True)
 
@@ -495,25 +492,25 @@ def _download(dst):
             try:
                 os.remove(fname)
             except OSError as e:
-                LOG.warning("Could not delete file %s", f)
+                log.warning("Could not delete file %s", f)
 
     # Extract
     wd = os.path.abspath(os.curdir)
     os.chdir(dst)
-    LOG.info("Extracting files from %s", joinedzip)
+    log.info("Extracting files from %s", joinedzip)
     cmd = " ".join(["unzip", joinedzip])
     subprocess.check_call(cmd, shell=True)
 
     try:
         os.remove(joinedzip)
     except OSError as e:
-        LOG.warning("Could not delete file %s", f)
+        log.warning("Could not delete file %s", f)
 
-    LOG.info("Moving subfolders")
+    log.info("Moving subfolders")
     for k in ["train", "test", "val"]:
         shutil.move(os.path.join(dst, "images", k), os.path.join(dst, k))
     images = os.path.join(dst, "images")
-    LOG.info("removing '%s' folder", images)
+    log.info("removing '%s' folder", images)
     shutil.rmtree(images)
 
 

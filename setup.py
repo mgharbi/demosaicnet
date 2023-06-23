@@ -16,7 +16,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name='demosaicnet',
     version=__version__,
-    scripts=["scripts/demosaicnet_demo"],
+    scripts=["scripts/demosaicnet_demo.py"],
     author="Michaël Gharbi",
     author_email="gharbi@csail.mit.edu",
     description="Minimal implementation of Deep Joint Demosaicking and Denoising [Gharbi2016]",
@@ -24,7 +24,7 @@ setuptools.setup(
     url="https://github.com/mgharbi/",
     packages = setuptools.find_packages(exclude=["tests"]),
     include_package_data=True,
-    install_requires=["wget", "torch-tools"],
+    install_requires=["wget", "tqdm", "torch", "imageio", "numpy"],
     classifiers=[
       "Programming Language :: Python :: 3",
       "License :: OSI Approved :: MIT License",
